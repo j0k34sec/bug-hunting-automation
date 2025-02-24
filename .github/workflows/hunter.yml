@@ -1,4 +1,4 @@
-name: Bug HUnting
+name: Bug Hunting
 
 on:
   push:
@@ -9,6 +9,9 @@ on:
 jobs:
   run-subfinder:
     runs-on: ubuntu-latest
+
+    env:
+      TARGET_DOMAIN: example.com  # Change this to your target domain
 
     steps:
       - name: Checkout Repository
@@ -25,8 +28,8 @@ jobs:
 
       - name: Run Subfinder
         run: |
-          subfinder -d example.com -all -recursive -silent -o subs.txt
-          cat results.txt
+          subfinder -d ${{ env.TARGET_DOMAIN }} -all -recursive -silent -o subs.txt
+          cat subs.txt
 
       - name: Upload Results
         uses: actions/upload-artifact@v4
