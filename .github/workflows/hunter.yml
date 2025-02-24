@@ -1,4 +1,4 @@
-name: Run Subfinder
+name: Bug HUnting
 
 on:
   push:
