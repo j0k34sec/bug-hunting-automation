@@ -52,7 +52,7 @@ jobs:
           sudo mv katana /usr/local/bin
           sudo katana -up
 
-      - name: Fix Nuclei Permissions
+      - name: Fix Nuclei Permissions and Download Templates
         run: |
           # Create necessary directories for Nuclei and Uncover
           mkdir -p /home/runner/.config/nuclei
@@ -64,9 +64,9 @@ jobs:
           sudo chown -R $USER:$USER /home/runner/nuclei-templates
           chmod -R 755 /home/runner/nuclei-templates
 
-          # Install Nuclei Templates with the correct path
-          nuclei -update-templates -update-directory /home/runner/nuclei-templates
-          echo "template-dir: /home/runner/nuclei-templates" > /home/runner/.config/nuclei/config.yaml
+          # Manually download Nuclei templates
+          git clone https://github.com/projectdiscovery/nuclei-templates.git /home/runner/nuclei-templates
+          echo "templates-directory: /home/runner/nuclei-templates" > /home/runner/.config/nuclei/config.yaml
 
       - name: Run Subfinder and Tools
         run: |
