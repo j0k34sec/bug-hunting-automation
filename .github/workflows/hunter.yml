@@ -54,11 +54,21 @@ jobs:
 
       - name: Fix Nuclei Permissions
         run: |
-          sudo mkdir -p /home/runner/.config/nuclei
-          sudo mkdir -p /home/runner/.config/uncover
-          sudo chown -R $USER:$USER /home/runner/.config
+          # Create necessary directories for Nuclei and Uncover
+          mkdir -p /home/runner/.config/nuclei
+          mkdir -p /home/runner/.config/uncover
+          mkdir -p /home/runner/nuclei-templates
 
-      - name: Start Scanning
+          # Set correct ownership and permissions
+          sudo chown -R $USER:$USER /home/runner/.config
+          sudo chown -R $USER:$USER /home/runner/nuclei-templates
+          chmod -R 755 /home/runner/nuclei-templates
+
+          # Install Nuclei Templates with the correct path
+          nuclei -update-templates -update-directory /home/runner/nuclei-templates
+          echo "template-dir: /home/runner/nuclei-templates" > /home/runner/.config/nuclei/config.yaml
+
+      - name: Run Subfinder and Tools
         run: |
           subfinder -d ${{ env.TARGET_DOMAIN }} -all -recursive -silent -o subs.txt
           cat subs.txt | httpx -td -title -sc -ip -cdn -o live_host.txt
