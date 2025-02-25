@@ -20,7 +20,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt update
-          sudo apt install -y wget unzip
+          sudo apt install -y wget unzip python3-pip
 
           # Install Subfinder
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.5.7/subfinder_2.5.7_linux_amd64.zip
@@ -40,11 +40,11 @@ jobs:
           sudo mv nuclei /usr/local/bin
           sudo nuclei -up
 
-          # Install wafw00f
+          # Install wafw00f with fix
+          sudo apt install -y python3-setuptools python3-wheel
           git clone https://github.com/EnableSecurity/wafw00f.git
           cd wafw00f
-          python3 setup.py build
-          sudo python3 setup.py install
+          sudo pip3 install .
           cd ..
 
           # Install Katana
