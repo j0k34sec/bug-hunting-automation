@@ -24,33 +24,35 @@ jobs:
 
           # Install Subfinder
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.5.7/subfinder_2.5.7_linux_amd64.zip
-          unzip subfinder_2.5.7_linux_amd64.zip
+          unzip -o subfinder_2.5.7_linux_amd64.zip
           sudo mv subfinder /usr/local/bin/
           sudo subfinder -up        
 
           # Install Httpx
           wget https://github.com/projectdiscovery/httpx/releases/download/v1.6.10/httpx_1.6.10_linux_amd64.zip
-          unzip httpx_1.6.10_linux_amd64.zip
+          unzip -o httpx_1.6.10_linux_amd64.zip
           sudo mv httpx /usr/local/bin
           sudo httpx -up
 
           # Install Nuclei
           wget https://github.com/projectdiscovery/nuclei/releases/download/v3.3.9/nuclei_3.3.9_linux_amd64.zip
-          unzip nuclei_3.3.9_linux_amd64.zip
+          unzip -o nuclei_3.3.9_linux_amd64.zip
           sudo mv nuclei /usr/local/bin
           sudo nuclei -up
 
-          # install wafw00f
+          # Install wafw00f
           git clone https://github.com/EnableSecurity/wafw00f.git
           cd wafw00f
           python3 setup.py build
-          sudo python3 setup install
+          sudo python3 setup.py install
+          cd ..
 
-          # installing katana
+          # Install Katana
           wget https://github.com/projectdiscovery/katana/releases/download/v1.1.2/katana_1.1.2_linux_amd64.zip
-          unzip katana_1.1.2_linux_amd64.zip
+          unzip -o katana_1.1.2_linux_amd64.zip
           sudo mv katana /usr/local/bin
           sudo katana -up
+
       - name: Run Subfinder and Tools
         run: |
           subfinder -d ${{ env.TARGET_DOMAIN }} -all -recursive -silent -o subs.txt
@@ -58,8 +60,9 @@ jobs:
           cat live_host.txt | awk '{print $1}' | tee live_subs.txt
           nuclei -l live_subs.txt -rl 10 -bs 2 -c 2 -as -s critical,high,medium -o nuclei_results.txt
           cat live_subs.txt | xargs -I {} wafw00f -v {} | tee waf_detection.txt
-          cat live_host.txt | grep 403 | awk '{print $1}'
+          cat live_host.txt | grep 403 | awk '{print $1}' | tee forbidden_hosts.txt
           katana -list live_subs.txt -o urls.txt
+
       - name: Upload Results
         uses: actions/upload-artifact@v4
         with:
@@ -69,4 +72,6 @@ jobs:
             live_host.txt
             live_subs.txt
             nuclei_results.txt
+            waf_detection.txt
+            forbidden_hosts.txt
             urls.txt
