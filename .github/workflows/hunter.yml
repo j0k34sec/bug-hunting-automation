@@ -20,7 +20,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt update
-          sudo apt install -y wget unzip python3-pip
+          sudo apt install -y wget unzip python3-pip python3-setuptools python3-wheel
 
           # Install Subfinder
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.5.7/subfinder_2.5.7_linux_amd64.zip
@@ -41,7 +41,6 @@ jobs:
           sudo nuclei -up
 
           # Install wafw00f with fix
-          sudo apt install -y python3-setuptools python3-wheel
           git clone https://github.com/EnableSecurity/wafw00f.git
           cd wafw00f
           sudo pip3 install .
@@ -53,15 +52,21 @@ jobs:
           sudo mv katana /usr/local/bin
           sudo katana -up
 
-      - name: Run Subfinder and Tools
+      - name: Fix Nuclei Permissions
+        run: |
+          sudo mkdir -p /home/runner/.config/nuclei
+          sudo mkdir -p /home/runner/.config/uncover
+          sudo chown -R $USER:$USER /home/runner/.config
+
+      - name: Start Scanning
         run: |
           subfinder -d ${{ env.TARGET_DOMAIN }} -all -recursive -silent -o subs.txt
           cat subs.txt | httpx -td -title -sc -ip -cdn -o live_host.txt
           cat live_host.txt | awk '{print $1}' | tee live_subs.txt
-          nuclei -l live_subs.txt -rl 10 -bs 2 -c 2 -as -s critical,high,medium -o nuclei_results.txt
           cat live_subs.txt | xargs -I {} wafw00f -v {} | tee waf_detection.txt
           cat live_host.txt | grep 403 | awk '{print $1}' | tee forbidden_hosts.txt
           katana -list live_subs.txt -o urls.txt
+          nuclei -l live_subs.txt -rl 10 -bs 2 -c 2 -as -s critical,high,medium -o nuclei_results.txt
 
       - name: Upload Results
         uses: actions/upload-artifact@v4
